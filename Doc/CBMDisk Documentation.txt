@@ -1,0 +1,387 @@
+D64 Disk Utilities Ver. 1.0 BETA
+
+License: This is FREEWARE and you can modify it, put it in commercial software and do anything you like as long as you give credit where credit is due. I hope that this benefits the community in some way and feel free to improve on it as you wish, please just give credit to, Martin Sigley, for it's original creation.
+
+
+IMPORTANT: This version is very much in beta form and is not very well tested, I have tested the routines only to a limited extent. DO NOT USE THIS WITH D64 IMAGES THAT YOU ONLY HAVE ONE COPY OF, you might regret it! 
+
+If you should find errors please contact me at the email listed below.
+
+Sincerely,
+Martin Sigley
+remove-this-for-spam-protection-firebreathinggroundhog@yahoo.com
+
+Library Description: This library is intended to be used with Commodore D64 image files. It allows you to create blank images, load data, load directories, load the header, save data, save directories, save the header, manipulate the BAM (Block Allocation Map), copy files from one image to another as well as edit information on the disk image. 
+
+This library has been written in both Microsoft Quick C 2.5 and Open Watcom 1.9 in both DOS 6.22 and Windows 95 operating system environments. I have never used it outside of these environments but I am pretty confident it will work well in pretty much any C environment you choose with little to no modification.
+
+Installation: 16 Bit DOS Library. Copy the following files from the zip folder in to the source directory of your project, include CBMDisk.lib in your resources and #include "CBMDisk.h" in your C file.
+
+If you are not creating a 16 bit target then you will have to make your own library from the .c and .h files.
+
+Files to copy in to the source directory of your project:
+CBMDisk.h 	(Header file, must be included in your source file)
+CBMDisk.lib 	(Library file, must be added to your project)
+Layout.CBM 	(Required for Track/Block conversion to physical file location)
+Virgin18.CBM	 (Required for formatting blank disk images)
+
+Not required in your project source directory:
+CBMTester.c			// Good for example usage
+CBMDisk.c			// Source file for the library
+
+
+Usage Example:
+#include "CBMDisk.h"                      // Required to use the library functions.
+
+CBMDisk myimage;                       	 // You must create a CBMDisk data type for use with most functions.
+
+CBMData *data;			// This data type is used to store data loaded from disk such as 
+				// a BASIC program. It is also required for you to store data to disk.
+				// It has to 2 important structure variables array and size, the array is a 				                           	 // byte * pointer (unsigned char) and it is used to point to your data 						// anywhere in memory, secondly the size is the size of your array in 						// bytes.
+				// These two elements can be accessed in this example like this:
+				// (*data).array = mydata; or data->array = &mydata[0];
+				// (*data).size = myNumberOfDataElements;
+
+cbmMount(&myimage,  "Image.D64"); 	// This is required by most functions in order to work with a 							// D64 image file. It will load the header and directory in to the 						// CBMDisk data type for use with other functions. 
+
+...do cbm disk stuff, like load, save,
+copy, format, etc. 
+
+
+
+cbmUnmount(&myimage);			// Very important do NOT forget to unmount the image when 							// you are finished or you may corrupt the disk image. 							// Corruption is unlikely if you have only read from the image 							// but very likely if you have done changes to the image.
+
+
+Error Codes:
+
+FILE_ERROR     		-1
+OUT_OF_MEMORY   	-2
+OUT_OF_RANGE    	-3
+FILE_NOT_FOUND  	-4
+ERROR           		-5
+FILE_NOT_OPEN   	-6
+FILE_EXISTS     		-7
+
+
+Function reference from A-Z:
+
+
+Summary: Creates a directory block and adds it to the CBMDisk if one is available.
+
+Syntax:        CBMFile_Entry*  cbmAddDirectoryBlock        (CBMDisk *disk)
+
+Returns: The first file entry in the new directory block or NULL if unsuccessful.
+
+
+
+
+Summary: Marks a block allocated in BAM.
+
+Syntax:        void            cbmAllocateBlock            (CBMDisk *disk, byte *tb)
+
+Returns: N/A
+
+
+
+
+Summary: Read, Allocate or Free a sector in the BAM. tb should be a pointer to a 2 byte element containing the Track and Block of the sector. Use 'r', 'a' or 'f' in char s to perform the approprite operation. See also cbmIsBlockFree and cbmAllocateBlock functions.
+
+Syntax:        int             cbmBAM                      (CBMDisk *disk, byte *tb, char s)
+
+Returns: 0 for success or an error code.
+
+
+
+
+Summary: Calculates the physical image file address that corresponds to the track and block location.
+
+Syntax:   long            cbmBlockLocation            (byte *tb)
+
+Returns: A long integral value that represents the number of bytes from the beginning of the file.
+
+
+
+
+
+Summary: Copies track 18 from a D64 image file and stores it in a CBM file for use with the library. 
+
+Syntax:        int             cbmCopy18                   (char *destName, char *sourceName)
+
+Returns: 0 for success or an error code.
+
+Note: Primary purpose of this function is to create a copy of track 18 from a blank D64 image to use when creating disk image files. One has already been created for you and is labeled Virgin18.CBM ;)
+
+
+
+
+Summary: Copies a file from one disk image and stores it in another. Both disk images need to be mounted before calling this function and unmounted when finished.
+
+Syntax:     int             cbmCopy                 (CBMDisk *dest, CBMDisk *source, byte *fileName, byte fileType)
+
+Returns: 0 for success or an error code.
+
+
+
+
+Summary: Intended to be used by, cbmD64StringCString and  cbmCStringD64String. 
+
+Syntax: byte*           cbmCopyString   (byte* destination string, const byte* source string)
+
+
+
+
+Summary: Finds an available file entry, allocates it and fills it in with data.
+
+Syntax: CBMFile_Entry*  cbmCreateFileEntry (CBMDisk *disk, byte *fileName, byte fileType, unsigned int fileSize, byte *tb)
+
+Returns: A CBMFile_Entry* pointer to the newly allocated directory entry.
+
+
+
+
+Summery: Add padding to a C string and remove the NULL character. Returned string will be 17 characters wide.
+
+Syntax:  byte*         cbmCStringD64String         (byte *dest, const byte *source)
+        
+Returns: A pointer of type byte* to the destination string or an error code.
+
+
+
+
+Summery: Remove padding from a string loaded from a disk image and append a terminating NULL character. String returned will be 18 characters wide, +1 for the NULL character.
+
+Syntax:  	byte*           cbmD64StringCString   (byte*destination string, const byte* source string)
+
+Returns: A byte* pointer to the destination string.
+
+
+
+Summary: Returns an array of available blocks in the disk image to store an array of bytes. size is measured in bytes.
+
+Syntax:        byte*           cbmEmptyBlockChain          (CBMDisk *disk, int size)
+        
+Returns: Returns a byte* pointer to an array of available blocks or NULL if there is not enough free space in the disk image.
+
+
+
+
+Summary: Looks for a non-allocated directory block in track 18.
+
+Syntax:        byte*           cbmEmptyDirectoryBlock      (CBMDisk *disk)
+        
+Returns: A byte* pointer to the emptry directory block or NULL if none exist.
+
+
+
+
+
+Summary: Returns an unused directory entry. If non are available it attempts to create a new directory block.
+
+Syntax:        CBMFile_Entry*  cbmEmptyFileEntry           (CBMDisk *disk)
+
+Returns: The first available file entry that is found, including a file that has been deleted previously.
+
+
+
+
+
+Summary: Creates and formats a blank D64 image file.
+
+Syntax:        int             cbmFormat                   (char *imageName, byte *diskName, byte id)
+
+Returns: 0 for success or an error code.
+
+
+
+
+Summary: Counts number of free blocks on disk and returns it.
+
+Syntax:      int             cbmImageSpace               (CBMDisk *disk)
+
+Returns: Number of free sectors/blocks available on disk for storage.
+
+
+
+
+
+Summary: Checks to see if a block in the disk image is available for storage.
+
+Syntax:      int             cbmIsBlockFree              (CBMDisk *disk, byte *tb)
+
+Returns: 0 for allocated or 1 for free.
+
+
+
+Summary: Internal use by the library for reading a chain of blocks corresponding to a file or directory.
+
+Syntax:   CBMData*        cbmLibReadBlockChain        (FILE *fp, int size, int offset, byte *tb)
+        
+Returns: A CBMData* pointer.
+
+
+
+Summary: Prints the directory in the D64 disk image to the text screen.
+
+Syntax: void            cbmListDirectory            (CBMDisk*)
+
+Returns: N/A
+
+
+
+Summary: Load a file from a disk image. Automatically converts C strings to D64 strings when searching. Function is case sensitive.
+
+Syntax: CBMData*        cbmLoad         (CBMDisk *disk, byte *fileName, byte fileType)
+
+Returns: A CBMData* pointer to the beginning of data read.
+
+NOTE: It is your responsibility to free the memory allocated when you are finished with it. To free the allocated memory you should free CBMData.array element using the free() function in C.
+
+
+
+Summary: Loads a directory from a D64 image and fills the directory field in the CBMDisk data type.
+
+Syntax: int             cbmLoadDirectory            (CBMDisk*)
+        
+Returns: 0 for success or an error code.
+
+
+
+
+Summary: Load a data chain of blocks from a file. tb is short for Track/Block.
+
+Syntax: CBMData*        cbmLoadData                 (FILE *fp, byte *tb);
+        
+Returns: A CBMData* pointer to the beginning of the data read from the chain of blocks.
+
+
+
+
+
+
+
+Summary: Attempts to load the header information stored in the D64 image and stores it in the header attribute of the CBMDisk data type.
+
+Syntax:        int             cbmLoadHeader               (CBMDisk* disk)
+
+Returns: 0 for success or an error code.
+
+
+
+
+
+Summary: Mount a D64 image and populate the CBMDisk header and directory data types.
+
+Syntax:       void            cbmMount                    (CBMDisk* disk, char *name );
+        
+Returns: N/A
+
+Note: This should be the very first thing you do when working with a D64 image.
+
+
+
+
+Summary: Prints in text mode a chain of blocks that start at tb, which is a pointer to a 2 byte array that means Track/Block, and ends at the last block which is represented by a 0 in the first byte.
+
+Syntax: void            cbmPrintDataChain           (FILE *fp, byte *tb)
+
+Returns: N/A
+
+
+
+Summary: Reads a block (256 bytes) from a D64 image. tb is short for Track/Block.
+
+Syntax: byte*           cbmReadBlock                (FILE *fp, byte *tb)
+        
+Returns: A byte* pointer to a 256 byte array of the data read from the file.
+
+NOTE: The pointer returned is statically stored in the function, therefore each call to read a block from a file will erase the previous stored information. You should copy the data to a permanent buffer when reading multiple blocks.
+
+
+
+
+Summary: Saves a CBMData* data type to disk, creates a directory entry and allocates the BAM. You should use this when you want to save an array of data to disk.
+
+
+Syntax:        int             cbmSave                   (CBMDisk *disk, byte *fileName, byte fileType, CBMData *data)
+        
+Returns: 0 for success or an error code.
+
+
+
+
+
+
+
+
+Summary: Writes the header that is stored in a CBMHeader datatype to the disk image.
+
+Syntax:        int             cbmSaveHeader               (CBMDisk *disk);
+
+Returns: 0 for success or an error code.
+
+
+
+
+
+Summary: Mark a file as deleted in the directory and free all data blocks associated in the BAM.
+
+Syntax:   int             cbmScratch                  (CBMDisk *disk, byte *fileName, byte fileType)
+
+Returns: 0 for success or an error code.
+
+
+
+Summary: Search for a file name in a disk image. Automatically converts C strings to D64 strings.
+
+Syntax: CBMFile_Entry*  cbmSearch         (CBMDisk *disk, byte *searchName, byte fileType)
+
+Returns: A pointer to the file entry that matched the search criteria or a NULL pointer if no match was found.
+
+
+
+Summary: Returns a pointer to an array of sector limits. Each element in the array directly corresponds to the maximum number of sectors contained in the track.
+
+Syntax:   byte*           cbmSectorsPerTrack          (void)
+
+Returns: A byte* pointer to an array of 40 tracks containing the maximum sectors for each track.
+
+
+
+
+Summary: Unmount a D64 disk image.
+
+Syntax:   void            cbmUnmount                  (CBMDisk *disk)
+
+Returns: N/A
+
+Note: This should be done when you are finished with a disk image. If any data was written to the image previously and the image is not unmounted it will result in data loss or corruption of the disk image.
+
+
+
+
+
+Summary: Copies track 18 from a D64 disk image and stores it in a file.
+
+Syntax:     int                cbmWrite18                  (FILE *destFP, char *sourceName)
+
+Returns: 0 for success or an error code.
+
+
+
+
+
+Summary: Saves a 256 byte array (1 Block) to a specific Track/Block in the D64 disk image.
+
+Syntax: void            cbmWriteBlock               (FILE *fp, byte *data, byte* tb)
+
+Returns: N/A
+
+
+
+
+
+Summary: Mostly for internal use by the library. Write a CBMData* array to a disk image. You should use instead of cbmWriteBlockChain,  cbmSave which will also prepare a directory entry for the file.
+
+Syntax:        byte*           cbmWriteBlockChain          (CBMDisk *disk, CBMData *data)
+
+Returns: A byte* pointer to a 2 element array that corresponds to the first Track/Block in the data chain.
