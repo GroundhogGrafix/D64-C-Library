@@ -3,13 +3,6 @@ D64 Disk Utilities Version 1.0
 
 Author: Martin Sigley                         Date: 4/11/2018
 
-Disclaimer: I will NOT be held liable for any damages resulting
-from the use of this software. Not sure what those damages
-could be but I'll cover my ass anyway. I hope that this benefits
-the community in some way and feel free to improve on it as you
-wish, please just give credit where credit is due for the
-original creation.
-
 License: The library was tailored to my own personal needs and
 created out of the fondness I have for the C64. This is FREEWARE
 and you can modify it, put it in commercial software and do
@@ -17,8 +10,7 @@ anything you like as long as you give credit to the author,
 Martin Sigley, the original creater of this library.
 
 IMPORTANT: This version is very much in beta form and is not
-very well tested yet, I have tested the routines only to a
-limited extent.
+very well tested yet.
 
 DO NOT USE THIS WITH D64 IMAGES THAT YOU ONLY HAVE ONE COPY OF,
 YOU MIGHT REGRET IT!
